@@ -16,8 +16,8 @@ class WsServer
         $ws = new Swoole_websocket_server(self::host,self::port);
 
         $ws->set([
-            'worker_num' => 4,
-            'task_worker_num' => 2,
+            'worker_num' => 4,       //work进程数
+            'task_worker_num' => 2,  //任务进程数
         ]);
 
         $ws->on('open',[$this,'onOpen']);
@@ -54,7 +54,7 @@ class WsServer
             'task'  => 1,
             'fd' => $frame->fd
         ];
-        $serv->task($data);
+        $serv->task($data);  //子任务单据进程，异步操作
         $serv->push($frame->fd,"server push :".date('Y-m-d H:i:s'));
     }
 
