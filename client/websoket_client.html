@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title></title>
+  </head>
+  <body>
+   This is a websoket test!
+  </body>
+<script>
+    //websoket 连接 -> 发送 -》 read -> close
+    var client =  new WebSocket('ws://59.110.225.118:9501/');
+
+    client.onopen = function (server) {
+        console.log("Connecting open");
+        client.send("Hello Websoket");
+    }
+
+    client.onmessage = function (server) {
+        console.log("receive server:"+server.data);
+        client.close();
+    }
+
+    client.onclose = function (ev) {
+        console.log('close');
+    }
+
+    client.onerror = function (evt,e) {
+        console.log("error"+evt.data);
+    }
+</script>
+</html>
