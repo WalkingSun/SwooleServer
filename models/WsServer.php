@@ -36,6 +36,13 @@ class WsServer
      */
     public function onOpen( swoole_websocket_server $serv,  $request){
         echo "server handshake with fd={$request->fd}\n";
+
+        //定时器（异步执行）
+//        if($request->fd == 1){
+//            swoole_timer_tick(2000,function($timer_id){
+//                echo time().PHP_EOL;
+//            });
+//        }
     }
 
     /**
