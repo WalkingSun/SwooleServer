@@ -17,10 +17,21 @@ $http->set([
 ]);
 
 $http->on('request',function ($request , $response){
-    $data = array_merge($request->get?:[],$request->post?:[]);
-    $response->header('Content-type','text/html;charser=utf-8');        //设置header
-    $response->cookie("sun",random_int(1000,99999),time()+1800);        //设置cookie
-    $response->end("<h1>Hello Swoole.#".json_encode($data)."</h1>");    //返回客户端
+//    $data = array_merge($request->get?:[],$request->post?:[]);
+//    $response->header('Content-type','text/html;charser=utf-8');        //设置header
+//    $response->cookie("sun",random_int(1000,99999),time()+1800);        //设置cookie
+//    $response->end("<h1>Hello Swoole.#".json_encode($data)."</h1>");    //返回客户端
+    $query = $request->get;
+    $result = '';
+    $r = (!empty($request->server['request_uri']) && $request->server['request_uri']!="/favicon.ico" ) ? $request->server['request_uri']: ( !empty($query['r'])?$query['r']:'');
+    if( $r ){
+        $r = trim($r,"/");
+        if( file_exists(__DIR__."/{$r}.php") ){
+            $result = include __DIR__."/{$r}.php";
+        }
+    }
+
+    $response->end("<h1>Hello Swoole.#".$result."</h1>");
 });
 
 $http->start();
