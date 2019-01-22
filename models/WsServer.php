@@ -11,22 +11,44 @@ class WsServer
     const host = '0.0.0.0';
     const port = '9501';
 
-    public function __construct()
+    public $swoole;
+
+    public $config = ['gcSessionInterval' => 60000];
+
+    public $openCallback;       //open回调
+
+    public $messageCallback;    //message回调
+
+    public $runApp;    //request回调
+
+    public $workStartCallback;       //work回调
+
+    public $finishCallback;     //finish回调
+
+    public $closeCallback;       //close回调
+
+    public $taskCallback;       //task回调
+
+    public function __construct( $host, $port, $mode, $socketType, $swooleConfig=[], $config=[])
     {
-        $ws = new Swoole_websocket_server(self::host,self::port);
+        $host = $host?:self::host;
+        $port = $port?:self::port;
+        $this->swoole = new Swoole_websocket_server($host,$port,$mode,$socketType);
+        $this->webRoot = $swooleConfig['document_root'];
+        if( !empty($this->config) ) $this->config = array_merge($this->config, $config);
+        $this->swoole->set($swooleConfig);
 
-        $ws->set([
-            'worker_num' => 4,       //work进程数
-            'task_worker_num' => 2,  //任务进程数
-        ]);
+        $this->swoole->on('open',[$this,'onOpen']);
+        $this->swoole->on('message',[$this,'onMessage']);
+        $this->swoole->on('request',[$this,'onRequest']);
+        $this->swoole->on('work',[$this,'onWork']);            //增加work进程
+        $this->swoole->on('task',[$this,'onTask']);            //增加task任务进程
+        $this->swoole->on('finish',[$this,'onFinish']);
+        $this->swoole->on('close',[$this,'onClose']);
+    }
 
-        $ws->on('open',[$this,'onOpen']);
-        $ws->on('message',[$this,'onMessage']);
-        $ws->on('task',[$this,'onTask']);            //增加task任务进程
-        $ws->on('finish',[$this,'onFinish']);
-        $ws->on('close',[$this,'onClose']);
-
-        $ws->start();
+    public function run(){
+        $this->swoole->start();
     }
 
     /**
@@ -35,7 +57,7 @@ class WsServer
      * @param $request swoole_http_server 服务对象
      */
     public function onOpen( swoole_websocket_server $serv,  $request){
-        echo "server handshake with fd={$request->fd}\n";
+        call_user_func_array( $this->onOpen, [ $serv, $request ] );
 
         //定时器（异步执行）
 //        if($request->fd == 1){
@@ -55,14 +77,9 @@ class WsServer
     $frame->finish， 表示数据帧是否完整，一个WebSocket请求可能会分成多个数据帧进行发送（底层已经实现了自动合并数据帧，现在不用担心接收到的数据帧不完整）
      */
     public function onMessage(swoole_websocket_server $serv, swoole_websocket_frame $frame ){
-        echo "receive from client {$frame->fd} infos: {$frame->data}-{$frame->opcode}-{$frame->finish}\n";
 
-        $data = [
-            'task'  => 1,
-            'fd' => $frame->fd
-        ];
-        $serv->task($data);  //子任务单据进程，异步操作
-        $serv->push($frame->fd,"server push :".date('Y-m-d H:i:s'));
+        call_user_func_array( $this->messageCallback, [ $serv, $frame ]);
+
     }
 
     /**
@@ -73,7 +90,9 @@ class WsServer
      * 当服务器主动关闭连接时，底层会设置此参数为-1，可以通过判断$reactorId < 0来分辨关闭是由服务器端还是客户端发起的。
      */
     public function onClose( swoole_websocket_server $serv , $fd , $reactorId ){
-        echo "reactor-{$reactorId} client close {$fd}\n";
+
+        call_user_func_array( $this->closeCallback ,[ $serv , $fd , $reactorId ]);
+
     }
 
     /**
@@ -84,11 +103,12 @@ class WsServer
      * @param $data mixed 任务的内容
      */
     public function onTask(swoole_server $serv,  $task_id,  $src_worker_id,  $data){
-        //todo 任务
 
-        sleep(10);
-        //onTask函数中 return字符串，表示将此内容返回给worker进程。worker进程中会触发onFinish函数，表示投递的task已完成。
-        return "task {$src_worker_id}-{$task_id} success";
+        call_user_func_array( $this->taskCallback , [ $serv, $task_id, $src_worker_id, $data ]);
+
+//        sleep(10);
+//        onTask函数中 return字符串，表示将此内容返回给worker进程。worker进程中会触发onFinish函数，表示投递的task已完成。
+//        return "task {$src_worker_id}-{$task_id} success";
     }
 
     /**
@@ -101,7 +121,16 @@ class WsServer
      */
     public function onFinish(swoole_server $serv,  $task_id,  $data){
 
-        echo $data;
+        call_user_func_array( $this->finishCallback ,[ $serv,$task_id,$data]);
+//        echo $data;
 //        return $data;
+    }
+
+    public function onRequest( $request, $response ){
+        call_user_func_array( $this->runApp, [ $request, $response ]);
+    }
+
+    public function onWorkerStart( $server,  $worker_id ){
+        call_user_func_array( $this->workStartCallback , [$server,  $worker_id]);
     }
 }

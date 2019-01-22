@@ -22,7 +22,7 @@
 
 //了解下websocket 服务端与客户端的流程，最好手绘出来
 //bind -> listen -> read -> write ->close
-$serv = new swoole_websocket_server('0.0.0.0',9501);
+$serv = new swoole_websocket_server('0.0.0.0',9502);
 
 $serv->on('open',function($serv,$request){
     echo "server: handshake  success with fd= {$request->fd}\n";
