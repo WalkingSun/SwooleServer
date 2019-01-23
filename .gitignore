@@ -1,3 +1,4 @@
 ./runtime
 ./idea
 ./swoole-ide-helper
+server.pid
