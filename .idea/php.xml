@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PhpIncludePathManager">
+    <include_path>
+      <path value="" />
+      <path value="." />
+      <path value="/usr/share/pear" />
+      <path value="/opt/php5/share/pear" />
+      <path value="D:\website\web\space\swoole\swoole-ide-helper" />
+    </include_path>
+  </component>
+</project>
