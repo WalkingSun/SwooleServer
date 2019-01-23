@@ -34,7 +34,6 @@ class ImController extends BaseController
     }
 
     public function actionIndex(){
-        $result = 222;
         //查询当前服务连接所有客户信息
         $userList = [];
         if(  SwooleController::$table->count() ){
