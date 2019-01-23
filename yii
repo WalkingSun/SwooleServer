@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Yii console bootstrap file.
+ *
+ * @link http://www.yiiframework.com/
+ * @copyright Copyright (c) 2008 Yii Software LLC
+ * @license http://www.yiiframework.com/license/
+ */
+
+if( !isset($argv[1]) ){
+    var_dump("请输入执行控制器");
+    exit;
+}
+
+if( !file_exists('console/'.ucfirst($argv[1]).'Controller.php') ){
+    var_dump("没有找到执行控制器");
+    exit;
+}
+
+include 'console/'.ucfirst($argv[1]).'Controller.php';
+$class = new ReflectionClass(ucfirst($argv[1]).'Controller');
+$action = isset($argv[2])?$argv[2]:'index';
+if( !$class->hasMethod( 'action'.$action ) ){
+    var_dump("没有找到执行方法");
+    exit;
+}
+$instance  = $class->newInstanceArgs();
+$method = $class->getmethod('action'.$action ); // 获取类中方法
+$result = $method->invoke($instance);    // 执行方法
+
