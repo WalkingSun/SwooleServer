@@ -85,7 +85,7 @@ $websocketUrl = '192.168.33.30:91';
                     <p class="time"><span>13:42</span></p>
                     <div class="main">
                         <img class="avatar" width="30" height="30" src="https://avatars0.githubusercontent.com/u/13904719?s=400&u=63347e4bb1baa6dfbdfac9521d3ed3bb9b40ca02&v=4">
-                        <div class="text">项目地址: <a href="https://github.com/WalkingSun/WindIM" target="_blank">https://github.com/WalkingSun/WindIM</a></div>
+                        <div class="text">项目地址: <a href="https://github.com/WalkingSun/SwooleServer" target="_blank">https://github.com/WalkingSun/SwooleServer</a></div>
                     </div>
                 </li><!--v-for-end-->
             </ul>
