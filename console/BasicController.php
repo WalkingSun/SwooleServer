@@ -10,7 +10,7 @@ class BasicController
 {
 
     protected function globalParam( $request ){
-
+        $_GET = $_POST = $_SERVER = $_COOKIE = [];
         if( isset($request->get) ){
             foreach ( $request->get as $k=>$v){
                 $_GET[$k] = $v;
@@ -47,9 +47,10 @@ class BasicController
     {
         if ($pid = $this->getPid()) {
             posix_kill($pid, $sig);
+            return true;
         } else {
             $this->stdout("server is not running!" . PHP_EOL);
-            return;
+            return false;
         }
     }
 
@@ -57,4 +58,16 @@ class BasicController
         return fwrite(\STDOUT, $string);
     }
 
+    public  function getpid(){
+        $pid_file = $this->swoole_config['pid_file'];
+        if (file_exists($pid_file)) {
+            $pid = file_get_contents($pid_file);
+            if (posix_getpgid($pid)) {
+                return $pid;
+            } else {
+                unlink($pid_file);
+            }
+        }
+        return false;
+    }
 }

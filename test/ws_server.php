@@ -28,6 +28,6 @@
 //$ws->start();
 
 //面向对象
-include  __DIR__.'/models/WsServer.php';
+include __DIR__ . '/models/WsServer.php';
 $ws = new WsServer();
 

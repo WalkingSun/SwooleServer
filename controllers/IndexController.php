@@ -6,12 +6,13 @@
  * Time: 15:52
  */
 
-class IndexController
+include_once __DIR__.'/BaseController.php';
+class IndexController extends BaseController
 {
 
     public function actionIndex(){
-
-        return 'best boy!';
+        $result = 222;
+        $this->render('index',['result'=>$result]);
     }
 
 

@@ -24,15 +24,18 @@ class SwooleController extends BasicController{
 
     public function actionStart(){
 
-        $config = include __DIR__ . '../config/console.php';
+        $config = include __DIR__ . '/../config/console.php';
 
         if( isset($config['swoole']['log_file']) ) $this->swoole_config['log_file'] = $config['swoole']['log_file'];
+
+        if( isset($config['swoole']['pid_file']) ) $this->swoole_config['pid_file'] = $config['swoole']['pid_file'];
+
         $this->swoole_config = array_merge(
             [
                 'document_root' => $config['swoole']['document_root'],
                 'enable_static_handler'     => true,
-                'daemonize'=>1,
-                'worker_num'=>2000,
+//                'daemonize'=>1,
+                'worker_num'=>4,
                 'max_request'=>2000,
 //            'task_worker_num'=>100,
                 //检查死链接  使用操作系统提供的keepalive机制来踢掉死链接
@@ -52,8 +55,6 @@ class SwooleController extends BasicController{
         $swooleServer = new WsServer(  $this->host,$this->port,$config['swoole']['mode'],$config['swoole']['socketType'],$this->swoole_config,$config);
 
         //连接信息保存到swoole_table
-        $_SERVER['SERVER_SWOOLE'] = $swooleServer;
-
         self::$table = new \swoole_table(10);
         self::$table->column('username',\Swoole\Table::TYPE_STRING, 10);
         self::$table->column('avatar',\Swoole\Table::TYPE_STRING, 255);
@@ -65,26 +66,34 @@ class SwooleController extends BasicController{
             echo "server handshake with fd={$request->fd}\n";
         };
 
-        $swooleServer->runApp = function( $request , $response ) use($config){
+        $swooleServer->runApp = function( $request , $response ) use($config,$swooleServer){
 
             //全局变量设置及app.log
             $this->globalParam( $request );
+            $_SERVER['SERVER_SWOOLE'] = $swooleServer;
 
             //记录日志
-            Common::addLog( $config['api.log'] , array_merge($request->hreader,$_SERVER) );
+            $apiData = $_SERVER;
+            unset($apiData['SERVER_SWOOLE']);
+            Common::addLog( $config['log'] , ($apiData) );
 
             //解析路由
-            $r = $request->get('r');
+            $r = $_GET['r'];
+            $r = $r?:( isset($config['defaultRoute'])?$config['defaultRoute']:'index/index');
+            $params = explode('/',$r);
+            $controller = __DIR__.'/../controllers/'.ucfirst($params[0]).'Controller.php';
+
             $result = '';
-            $params = explode(',',$r);
-            $controller = __DIR__.'/controllers/'.ucfirst($params[0]).'Controller.php';
             if( file_exists( $controller ) ){
-                include $controller;
+                require_once $controller;
                 $class = new ReflectionClass(ucfirst($params[0]).'Controller');
                 if( $class->hasMethod( 'action'.ucfirst($params[1]) ) ){
                     $instance  = $class->newInstanceArgs();
                     $method = $class->getmethod('action'.ucfirst($params[1])); // 获取类中方法
-                    $result = $method->invoke($instance);    // 执行方法
+                    ob_start();
+                    $method->invoke($instance);    // 执行方法
+                    $result = ob_get_contents();
+                    ob_clean();
                 }else{
                     $result = 'NOT FOUND!';
                 }
@@ -149,23 +158,29 @@ class SwooleController extends BasicController{
         };
 
         $swooleServer->closeCallback = function(  $server,  $fd,  $reactorId ){
-            //退出房间处理
-            self::$table->del($fd);
-            foreach (self::$table as $v){
-                $pushData = ['fd'=>$fd,'username'=>'','avatar'=>'','time'=>date('H:i'),'data'=>'','action'=>'remove'];
-                $server->push($v['fd'],json_encode($pushData));
+
+            if(  self::$table->exist($fd) ){
+                //退出房间处理
+                self::$table->del($fd);
+                foreach (self::$table as $v){
+                    $pushData = ['fd'=>$fd,'username'=>'','avatar'=>'','time'=>date('H:i'),'data'=>'','action'=>'remove'];
+                    $server->push($v['fd'],json_encode($pushData));
+                }
             }
 
             echo  "Client close fd {$fd}".PHP_EOL;
         };
 
+        $this->stdout("server is running, listening {$this->host}:{$this->port}" . PHP_EOL);
         $swooleServer->run();
     }
 
 
     public function actionStop(){
-        $this->sendSignal( SIGTERM );
-        $this->stdout("server is stopped, stop listening {$this->host}:{$this->port}" . PHP_EOL);
+        $r = $this->sendSignal( SIGTERM );
+        if( $r ){
+            $this->stdout("server is stopped, stop listening {$this->host}:{$this->port}" . PHP_EOL);
+        }
     }
 
     public function actionRestart(){

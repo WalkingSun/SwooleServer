@@ -41,7 +41,7 @@ class WsServer
         $this->swoole->on('open',[$this,'onOpen']);
         $this->swoole->on('message',[$this,'onMessage']);
         $this->swoole->on('request',[$this,'onRequest']);
-        $this->swoole->on('work',[$this,'onWork']);            //增加work进程
+        $this->swoole->on('WorkerStart',[$this,'onWorkerStart']);            //增加work进程
         $this->swoole->on('task',[$this,'onTask']);            //增加task任务进程
         $this->swoole->on('finish',[$this,'onFinish']);
         $this->swoole->on('close',[$this,'onClose']);
@@ -57,7 +57,7 @@ class WsServer
      * @param $request swoole_http_server 服务对象
      */
     public function onOpen( swoole_websocket_server $serv,  $request){
-        call_user_func_array( $this->onOpen, [ $serv, $request ] );
+        call_user_func_array( $this->openCallback, [ $serv, $request ] );
 
         //定时器（异步执行）
 //        if($request->fd == 1){

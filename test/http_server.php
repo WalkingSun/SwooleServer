@@ -26,8 +26,8 @@ $http->on('request',function ($request , $response){
     $r = (!empty($request->server['request_uri']) && $request->server['request_uri']!="/favicon.ico" ) ? $request->server['request_uri']: ( !empty($query['r'])?$query['r']:'');
     if( $r ){
         $r = trim($r,"/");
-        if( file_exists(__DIR__."/{$r}.php") ){
-            $result = include __DIR__."/{$r}.php";
+        if( file_exists(__DIR__ . "/http_server.php") ){
+            $result = include __DIR__ . "/http_server.php";
         }
     }
 

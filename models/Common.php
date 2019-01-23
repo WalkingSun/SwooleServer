@@ -10,9 +10,8 @@ class Common
 {
 
     public static function addLog( $file, $data ){
-        $log = __DIR__ . '/../runtime/logs/'.$file;
 
-        error_log( var_export($data,1),3,$log );
+        error_log( print_r($data,1),3,$file );
     }
 
 
