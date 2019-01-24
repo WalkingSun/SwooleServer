@@ -17,7 +17,7 @@ class SwooleController extends BasicController{
 
     public $port;
 
-    public $swoole_config=[];
+    public  $swoole_config=[];
 
     public static $table;
 
@@ -184,12 +184,12 @@ class SwooleController extends BasicController{
     }
 
     public function actionRestart(){
-        $_SERVER['SERVER_SWOOLE']->shutdown();
+        $this->sendSignal(SIGTERM);     //向主进程发送SIGTERM实现关闭服务器
         $this->actionStart();
     }
 
     public function actionReload(){
-        $this->sendSignal(SIGUSR1);
+        $this->sendSignal(SIGUSR1);   //向主进程/管理进程发送SIGUSR1信号，将平稳地restart所有Worker进程
     }
 
 

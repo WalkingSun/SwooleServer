@@ -59,7 +59,8 @@ class BasicController
     }
 
     public  function getpid(){
-        $pid_file = $this->swoole_config['pid_file'];
+        $config = include __DIR__ . '/../config/console.php';
+        $pid_file = $config['swoole']['pid_file'];
         if (file_exists($pid_file)) {
             $pid = file_get_contents($pid_file);
             if (posix_getpgid($pid)) {

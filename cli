@@ -8,13 +8,13 @@ if( !isset($argv[1]) ){
 
     var_dump("请输入执行控制器");
 
-}elseif( !file_exists('console/'.ucfirst($argv[1]).'Controller.php') ){
+}elseif( !file_exists(__DIR__.'/console/'.ucfirst($argv[1]).'Controller.php') ){
 
     var_dump("没有找到执行控制器");
 
 }else{
 
-    include 'console/'.ucfirst($argv[1]).'Controller.php';
+    include __DIR__.'/console/'.ucfirst($argv[1]).'Controller.php';
     $class = new ReflectionClass(ucfirst($argv[1]).'Controller');
     $action = isset($argv[2])?$argv[2]:'index';
     if( !$class->hasMethod( 'action'.$action ) ){
