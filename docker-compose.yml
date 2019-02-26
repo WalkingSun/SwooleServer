@@ -7,9 +7,9 @@ services:
        ports:
          - "91:80"
        volumes:
-         - /data/app/:/data/
+         - ./:/data/
        stdin_open: true
        tty: true
        privileged: true
 #      容器启动时执行指令
-       entrypoint: ["php","/data/swoole/cli","swoole","start"]
+       entrypoint: ["php","/data/cli","swoole","start"]
