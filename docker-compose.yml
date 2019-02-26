@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+    swoft:
+       image: xlight/docker-php7-swoole
+#       build: ./
+       ports:
+         - "91:80"
+       volumes:
+         - /data/app/:/data/
+       stdin_open: true
+       tty: true
+       privileged: true
+#      容器启动时执行指令
+       entrypoint: ["php","/data/swoole/cli","swoole","start"]

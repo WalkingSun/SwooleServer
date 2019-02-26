@@ -12,7 +12,7 @@ return [
     'log'  => __DIR__.'/../runtime/logs/api.log',
     'swoole'    => [
         'host'  =>  '0.0.0.0',
-        'port'  => '91',
+        'port'  => '80',
         'mode' => SWOOLE_PROCESS,
         'socketType' => SWOOLE_TCP,
         'document_root' => __DIR__.'/../web',
